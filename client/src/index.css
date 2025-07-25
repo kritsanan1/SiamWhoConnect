@@ -1,0 +1,187 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: hsl(0, 0%, 100%);
+  --foreground: hsl(20, 14.3%, 4.1%);
+  --muted: hsl(60, 4.8%, 95.9%);
+  --muted-foreground: hsl(25, 5.3%, 44.7%);
+  --popover: hsl(0, 0%, 100%);
+  --popover-foreground: hsl(20, 14.3%, 4.1%);
+  --card: hsl(0, 0%, 100%);
+  --card-foreground: hsl(20, 14.3%, 4.1%);
+  --border: hsl(20, 5.9%, 90%);
+  --input: hsl(20, 5.9%, 90%);
+  --primary: hsl(340, 82%, 52%);
+  --primary-foreground: hsl(0, 0%, 100%);
+  --secondary: hsl(60, 4.8%, 95.9%);
+  --secondary-foreground: hsl(24, 9.8%, 10%);
+  --accent: hsl(60, 4.8%, 95.9%);
+  --accent-foreground: hsl(24, 9.8%, 10%);
+  --destructive: hsl(0, 84.2%, 60.2%);
+  --destructive-foreground: hsl(60, 9.1%, 97.8%);
+  --ring: hsl(20, 14.3%, 4.1%);
+  --radius: 0.5rem;
+
+  /* Thai app specific colors */
+  --pink-primary: hsl(340, 82%, 52%);
+  --purple-primary: hsl(291, 64%, 42%);
+  --pink-accent: hsl(340, 100%, 64%);
+  --purple-accent: hsl(262, 52%, 47%);
+  --gradient-bg: linear-gradient(135deg, hsl(340, 82%, 52%) 0%, hsl(291, 64%, 42%) 100%);
+}
+
+.dark {
+  --background: hsl(240, 10%, 3.9%);
+  --foreground: hsl(0, 0%, 98%);
+  --muted: hsl(240, 3.7%, 15.9%);
+  --muted-foreground: hsl(240, 5%, 64.9%);
+  --popover: hsl(240, 10%, 3.9%);
+  --popover-foreground: hsl(0, 0%, 98%);
+  --card: hsl(240, 10%, 3.9%);
+  --card-foreground: hsl(0, 0%, 98%);
+  --border: hsl(240, 3.7%, 15.9%);
+  --input: hsl(240, 3.7%, 15.9%);
+  --primary: hsl(340, 82%, 52%);
+  --primary-foreground: hsl(0, 0%, 100%);
+  --secondary: hsl(240, 3.7%, 15.9%);
+  --secondary-foreground: hsl(0, 0%, 98%);
+  --accent: hsl(240, 3.7%, 15.9%);
+  --accent-foreground: hsl(0, 0%, 98%);
+  --destructive: hsl(0, 62.8%, 30.6%);
+  --destructive-foreground: hsl(0, 0%, 98%);
+  --ring: hsl(240, 4.9%, 83.9%);
+  --radius: 0.5rem;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+
+  .thai-text {
+    font-family: 'Sarabun', 'Inter', sans-serif;
+  }
+}
+
+@layer components {
+  .gradient-bg {
+    background: var(--gradient-bg);
+  }
+
+  .card-shadow {
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1), 0 6px 10px rgba(0,0,0,0.1);
+  }
+
+  .video-overlay {
+    background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 50%);
+  }
+
+  .thai-pattern {
+    background-image: radial-gradient(circle at 25% 25%, rgba(255,255,255,0.1) 2%, transparent 3%);
+    background-size: 40px 40px;
+  }
+
+  .swipe-card {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-style: preserve-3d;
+  }
+
+  .swipe-card.swipe-right {
+    animation: swipeRight 0.3s ease-out forwards;
+  }
+
+  .swipe-card.swipe-left {
+    animation: swipeLeft 0.3s ease-out forwards;
+  }
+
+  .interest-tag {
+    @apply px-3 py-2 rounded-full border text-sm font-medium transition-all duration-200;
+  }
+
+  .interest-tag:not(.selected) {
+    @apply border-gray-300 text-gray-700 hover:border-pink-500 hover:bg-pink-50 hover:text-pink-700;
+  }
+
+  .interest-tag.selected {
+    @apply border-pink-500 bg-pink-500 text-white;
+  }
+
+  .nav-item {
+    @apply flex flex-col items-center space-y-1 py-2 px-3 rounded-lg transition-colors;
+  }
+
+  .nav-item.active {
+    @apply text-pink-500;
+  }
+
+  .nav-item:not(.active) {
+    @apply text-gray-400;
+  }
+}
+
+@layer utilities {
+  .animate-swipe-right {
+    animation: swipeRight 0.3s ease-out forwards;
+  }
+
+  .animate-swipe-left {
+    animation: swipeLeft 0.3s ease-out forwards;
+  }
+
+  .animate-bounce-gentle {
+    animation: bounceGentle 2s infinite;
+  }
+
+  .animate-pulse-heart {
+    animation: pulseHeart 1.5s ease-in-out infinite;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.3s ease-out;
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-in;
+  }
+}
+
+@keyframes swipeRight {
+  0% { transform: translateX(0) rotate(0deg); opacity: 1; }
+  100% { transform: translateX(100px) rotate(15deg); opacity: 0; }
+}
+
+@keyframes swipeLeft {
+  0% { transform: translateX(0) rotate(0deg); opacity: 1; }
+  100% { transform: translateX(-100px) rotate(-15deg); opacity: 0; }
+}
+
+@keyframes bounceGentle {
+  0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-10px); }
+  60% { transform: translateY(-5px); }
+}
+
+@keyframes pulseHeart {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Import Thai font */
+@import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
