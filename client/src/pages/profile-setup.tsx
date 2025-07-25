@@ -29,6 +29,7 @@ type ProfileSetupStep = "basic" | "interests" | "video";
 export default function ProfileSetup() {
   const [step, setStep] = useState<ProfileSetupStep>("basic");
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
+  const [videoUrl, setVideoUrl] = useState<string>("");
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -52,6 +53,7 @@ export default function ProfileSetup() {
       const response = await apiRequest("POST", "/api/profile/complete", {
         ...data,
         interests: selectedInterests,
+        videoUrl: videoUrl || undefined,
       });
       return response.json();
     },

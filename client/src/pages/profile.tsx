@@ -1,15 +1,27 @@
+import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { ArrowLeft, Settings, Edit, Crown, Shield, Share2, HelpCircle, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useLocation } from "wouter";
+import Navigation from "@/components/ui/navigation";
+import PremiumModal from "@/components/ui/premium-modal";
+import SocialConnectModal from "@/components/ui/social-connect-modal";
 
 export default function Profile() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
+  const [showSocialModal, setShowSocialModal] = useState(false);
 
   const handleLogout = () => {
     window.location.href = "/api/logout";
+  };
+
+  const handleUpgradePremium = () => {
+    // In a real app, this would integrate with payment processing
+    console.log("Upgrading to premium...");
+    setShowPremiumModal(false);
   };
 
   if (!user) {
@@ -24,7 +36,7 @@ export default function Profile() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pb-20">
       <div className="gradient-bg p-6 pb-16">
         <div className="flex items-center justify-between mb-8">
           <Button 
@@ -101,6 +113,7 @@ export default function Profile() {
               <Button 
                 variant="ghost" 
                 className="w-full flex items-center justify-between p-4 hover:bg-gray-50 rounded-xl h-auto"
+                onClick={() => setShowPremiumModal(true)}
                 data-testid="button-upgrade-premium"
               >
                 <div className="flex items-center">
@@ -132,6 +145,7 @@ export default function Profile() {
               <Button 
                 variant="ghost" 
                 className="w-full flex items-center justify-between p-4 hover:bg-gray-50 rounded-xl h-auto"
+                onClick={() => setShowSocialModal(true)}
                 data-testid="button-social-connections"
               >
                 <div className="flex items-center">
@@ -175,6 +189,20 @@ export default function Profile() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Modals */}
+      <PremiumModal
+        isOpen={showPremiumModal}
+        onClose={() => setShowPremiumModal(false)}
+        onUpgrade={handleUpgradePremium}
+      />
+      
+      <SocialConnectModal
+        isOpen={showSocialModal}
+        onClose={() => setShowSocialModal(false)}
+      />
+
+      <Navigation activeTab="profile" />
     </div>
   );
 }

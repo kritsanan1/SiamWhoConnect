@@ -1,18 +1,24 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Heart, MapPin, Settings, User, X, Star } from "lucide-react";
+import { Heart, MapPin, Settings, User, X, Star, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
+import { useAuth } from "@/hooks/useAuth";
 import type { User as UserType } from "@shared/schema";
 import SwipeCard from "@/components/ui/swipe-card";
 import Navigation from "@/components/ui/navigation";
+import MatchModal from "@/components/ui/match-modal";
 
 export default function Discover() {
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [showMatchModal, setShowMatchModal] = useState(false);
   const [matchedUser, setMatchedUser] = useState<UserType | null>(null);
+  const [matchId, setMatchId] = useState<string | null>(null);
   const { toast } = useToast();
+  const { user: currentUser } = useAuth();
+  const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
 
   const { data: potentialMatches = [], isLoading } = useQuery<UserType[]>({
@@ -28,7 +34,15 @@ export default function Discover() {
     onSuccess: (data) => {
       if (data.isMutualLike && data.match) {
         setMatchedUser(potentialMatches[currentCardIndex]);
+        setMatchId(data.match.id);
         setShowMatchModal(true);
+        
+        // Celebrate with a toast
+        toast({
+          title: "🎉 แมตช์แล้ว!",
+          description: "คุณทั้งคู่สนใจกันนะ เริ่มสนทนากันเถอะ!",
+          duration: 3000,
+        });
       }
       queryClient.invalidateQueries({ queryKey: ["/api/matches"] });
       nextCard();
@@ -44,6 +58,18 @@ export default function Discover() {
 
   const nextCard = () => {
     setCurrentCardIndex(prev => prev + 1);
+  };
+
+  const handleCloseMatchModal = () => {
+    setShowMatchModal(false);
+    setMatchedUser(null);
+    setMatchId(null);
+  };
+
+  const handleSendMessage = () => {
+    if (matchId) {
+      setLocation(`/chat/${matchId}`);
+    }
   };
 
   const handleSwipeAction = (action: "like" | "pass" | "super") => {
@@ -205,34 +231,14 @@ export default function Discover() {
         )}
       </div>
 
-      {/* Match Notification Modal */}
-      {showMatchModal && matchedUser && (
-        <div className="fixed inset-0 gradient-bg flex items-center justify-center z-50 animate-fade-in">
-          <div className="text-center animate-slide-up">
-            <div className="text-8xl mb-4">💖</div>
-            <h2 className="text-4xl font-bold text-white mb-2">It's a Match!</h2>
-            <p className="text-white/90 text-lg mb-8 thai-text">
-              คุณและ{matchedUser.displayName}ชอบกันและกัน
-            </p>
-            <div className="flex justify-center space-x-4">
-              <Button 
-                variant="ghost" 
-                className="px-6 py-3 bg-white/20 backdrop-blur-sm text-white hover:bg-white/30 rounded-full"
-                onClick={closeMatchModal}
-                data-testid="button-continue-swiping"
-              >
-                <span className="thai-text">ดูต่อ</span>
-              </Button>
-              <Button 
-                className="px-6 py-3 bg-white text-pink-500 hover:bg-gray-50 rounded-full"
-                data-testid="button-send-message"
-              >
-                <span className="thai-text">ส่งข้อความ</span>
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Match Modal */}
+      <MatchModal
+        isOpen={showMatchModal}
+        onClose={handleCloseMatchModal}
+        matchedUser={matchedUser}
+        currentUser={currentUser || null}
+        onSendMessage={handleSendMessage}
+      />
 
       <Navigation activeTab="discover" />
     </div>

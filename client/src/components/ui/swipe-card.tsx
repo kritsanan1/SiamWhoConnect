@@ -1,8 +1,9 @@
 import { useState, useRef } from "react";
-import { Play, Info, Heart, X } from "lucide-react";
+import { Play, Info, Heart, X, MapPin, Briefcase, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { User } from "@shared/schema";
 import { cn } from "@/lib/utils";
+import VideoPlayer from "@/components/ui/video-player";
 
 interface SwipeCardProps {
   user: User;
