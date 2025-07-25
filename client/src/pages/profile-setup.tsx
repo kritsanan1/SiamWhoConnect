@@ -201,7 +201,7 @@ export default function ProfileSetup() {
             <FormItem>
               <FormLabel className="thai-text">อาชีพ</FormLabel>
               <FormControl>
-                <Input {...field} placeholder="อาชีพของคุณ" data-testid="input-occupation" />
+                <Input {...field} value={field.value || ""} placeholder="อาชีพของคุณ" data-testid="input-occupation" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -217,6 +217,7 @@ export default function ProfileSetup() {
               <FormControl>
                 <Textarea 
                   {...field} 
+                  value={field.value || ""}
                   rows={3} 
                   placeholder="เล่าเรื่องราวของคุณให้ทุกคนได้รู้จัก..." 
                   className="resize-none"

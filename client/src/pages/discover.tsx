@@ -15,7 +15,7 @@ export default function Discover() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: potentialMatches = [], isLoading } = useQuery({
+  const { data: potentialMatches = [], isLoading } = useQuery<UserType[]>({
     queryKey: ["/api/discover/potential-matches"],
     refetchOnWindowFocus: false,
   });
