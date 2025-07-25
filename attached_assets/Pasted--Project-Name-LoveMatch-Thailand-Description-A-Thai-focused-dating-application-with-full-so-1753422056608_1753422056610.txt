@@ -1,0 +1,84 @@
+# Project Name: LoveMatch Thailand
+
+## Description
+A Thai-focused dating application with full social media integration, including Facebook, TikTok, Instagram, and Twitter, featuring short video profiles and AI-assisted matching, aiming for sustainable revenue through a freemium model and in-app purchases.
+
+## Primary Goals
+- Connect Thai users through engaging short video profiles and AI-driven matchmaking.
+- Seamlessly integrate with popular social media platforms (Facebook, TikTok, Instagram, Twitter) for enhanced user experience.
+- Ensure data privacy compliance with PDPA regulations in Thailand.
+
+----------------------------------------------------
+
+## Tech Stack & Environment
+
+**Frontend:** Vite + React + TypeScript + Tailwind CSS
+
+**Backend:** Supabase (PostgreSQL + Auth)
+
+**Target Platform:** Single-Page Application
+
+**Framework Versions & Config:** Latest stable versions
+
+----------------------------------------------------
+
+## Requirements & Features
+
+### Core Features:
+- User profiles with short video introductions and interest details.
+- AI-powered matchmaking algorithm utilizing video data and user preferences.
+- Secure messaging feature with end-to-end encryption.
+- Swipe-based interface for browsing potential matches.
+- Full integration with Facebook, TikTok, Instagram, and Twitter for social media sync and video import.
+- Freemium model with in-app purchases and targeted advertising.
+
+### User Flows
+- User Registration: Sign up via social media or email with profile creation including video upload.
+- Matchmaking: Swipe and match through AI-suggested profiles, view video introductions.
+- Messaging: Engage in secure chats with matches, receive real-time notifications.
+- Social Media Sync: Connect and import data from Facebook, TikTok, Instagram, and Twitter for profile enhancement.
+
+### Business Rules
+- Users require a verified account to access matchmaking and messaging.
+- Video content must adhere to community guidelines and PDPA compliance.
+- Premium features accessible through in-app purchases, with ad-supported free tier.
+
+----------------------------------------------------
+
+## UI/UX Design
+
+### Layout
+- Optimized for mobile with intuitive gestures and controls, including swipe and tap.
+- Modern interface with gradient color schemes and responsive design.
+
+### Look & Feel
+- Sleek and engaging visuals, focusing on vibrant gradients and clean typography.
+- Consistent visual language to enhance brand recognition.
+
+### Pages
+- Home: Displays new video matches and social media feeds.
+- Matches: Swipe interface with video previews.
+- Chat: Secure messaging interface with video chat option.
+- Profile: User profile management, video uploads, and settings.
+
+### Components
+- Video Profile Card: Displays video intro and basic user info in swipe interface.
+- Chat Box: Encrypted messaging UI with multimedia support.
+- Social Media Connector: Interface for syncing with Facebook, TikTok, Instagram, and Twitter.
+
+----------------------------------------------------
+
+## Data Model & Supabase Setup
+
+### Database Schema
+- Users: Stores user credentials, detailed profiles, video data, and subscription status.
+- Matches: Logs user matches, video interactions, and AI recommendations.
+- Messages: Records encrypted chat conversations.
+- Social Media Links: Manages connections with external platforms.
+
+### Row-Level Security
+Enabled by default
+
+### Auth Requirements
+- Email verification and OAuth support for social media logins
+- PDPA compliance for data privacy and protection
