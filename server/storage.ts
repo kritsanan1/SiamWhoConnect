@@ -42,6 +42,9 @@ export interface IStorage {
   // Social connections
   createSocialConnection(userId: string, connection: InsertSocialConnection): Promise<SocialConnection>;
   getUserSocialConnections(userId: string): Promise<SocialConnection[]>;
+  
+  // Premium status
+  updateUserPremiumStatus(id: string, isPremium: boolean): Promise<User>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -151,14 +154,8 @@ export class DatabaseStorage implements IStorage {
 
   async getUserMatches(userId: string): Promise<(Match & { otherUser: User })[]> {
     const userMatches = await db
-      .select({
-        match: matches,
-        user1: users,
-        user2: users,
-      })
+      .select()
       .from(matches)
-      .leftJoin(users, eq(matches.user1Id, users.id))
-      .leftJoin(users, eq(matches.user2Id, users.id))
       .where(
         and(
           or(eq(matches.user1Id, userId), eq(matches.user2Id, userId)),
@@ -167,10 +164,23 @@ export class DatabaseStorage implements IStorage {
       )
       .orderBy(desc(matches.createdAt));
 
-    return userMatches.map(({ match, user1, user2 }) => ({
-      ...match,
-      otherUser: match.user1Id === userId ? user2! : user1!,
-    }));
+    // Get other users for each match
+    const matchesWithOtherUser = await Promise.all(
+      userMatches.map(async (match) => {
+        const otherUserId = match.user1Id === userId ? match.user2Id : match.user1Id;
+        const [otherUser] = await db
+          .select()
+          .from(users)
+          .where(eq(users.id, otherUserId));
+
+        return {
+          ...match,
+          otherUser: otherUser!
+        };
+      })
+    );
+
+    return matchesWithOtherUser;
   }
 
   // Message operations
@@ -249,6 +259,18 @@ export class DatabaseStorage implements IStorage {
           eq(socialConnections.isConnected, true)
         )
       );
+  }
+
+  async updateUserPremiumStatus(id: string, isPremium: boolean): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({ 
+        isPremium,
+        updatedAt: new Date()
+      })
+      .where(eq(users.id, id))
+      .returning();
+    return user;
   }
 }
 

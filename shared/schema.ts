@@ -46,6 +46,7 @@ export const users = pgTable("users", {
   videoUrl: varchar("video_url"),
   isProfileComplete: boolean("is_profile_complete").default(false),
   interests: text("interests").array(),
+  isPremium: boolean("is_premium").default(false),
 });
 
 export const matches = pgTable("matches", {

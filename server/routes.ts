@@ -1,7 +1,16 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import Stripe from "stripe";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
+
+if (!process.env.STRIPE_SECRET_KEY) {
+  throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
+}
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+  apiVersion: "2024-12-18.acacia",
+});
 import { 
   updateProfileSchema,
   insertLikeSchema,
@@ -160,6 +169,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching social connections:", error);
       res.status(500).json({ message: "Failed to fetch social connections" });
+    }
+  });
+
+  // Stripe payment routes
+  app.post("/api/create-checkout-session", isAuthenticated, async (req: any, res) => {
+    try {
+      const { priceId, plan } = req.body;
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+
+      if (!user?.email) {
+        return res.status(400).json({ message: "User email required" });
+      }
+
+      const session = await stripe.checkout.sessions.create({
+        customer_email: user.email,
+        payment_method_types: ['card'],
+        line_items: [
+          {
+            price_data: {
+              currency: 'thb',
+              product_data: {
+                name: `LoveMatch Premium - ${plan === 'yearly' ? 'รายปี' : 'รายเดือน'}`,
+                description: 'ปลดล็อคฟีเจอร์พรีเมียมทั้งหมด',
+              },
+              unit_amount: plan === 'yearly' ? 299900 : 29900, // Thai Baht in satang
+              recurring: {
+                interval: plan === 'yearly' ? 'year' : 'month',
+              },
+            },
+            quantity: 1,
+          },
+        ],
+        mode: 'subscription',
+        success_url: `${req.protocol}://${req.hostname}/subscription-success?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${req.protocol}://${req.hostname}/discover`,
+        metadata: {
+          userId: userId,
+          plan: plan,
+        },
+      });
+
+      res.json({ sessionId: session.id });
+    } catch (error: any) {
+      console.error("Stripe checkout session error:", error);
+      res.status(500).json({ message: "Error creating checkout session: " + error.message });
+    }
+  });
+
+  // User settings routes
+  app.post("/api/user/settings", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const settings = req.body;
+      
+      // In a real app, you'd save these settings to the database
+      // For now, we'll just return success
+      res.json({ success: true, settings });
+    } catch (error) {
+      console.error("Error updating user settings:", error);
+      res.status(500).json({ message: "Failed to update settings" });
     }
   });
 

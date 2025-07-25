@@ -1,212 +1,210 @@
 import { useState, useRef } from "react";
-import { Play, Info, Heart, X, MapPin, Briefcase, Star } from "lucide-react";
+import { Heart, X, Star, Play, MapPin, Briefcase, GraduationCap } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import type { User } from "@shared/schema";
-import { cn } from "@/lib/utils";
-import VideoPlayer from "@/components/ui/video-player";
 
 interface SwipeCardProps {
   user: User;
   isActive?: boolean;
-  className?: string;
-  onSwipeAction?: (action: "like" | "pass" | "super") => void;
+  onSwipeAction?: (action: 'like' | 'pass' | 'superlike') => void;
 }
 
-export default function SwipeCard({ 
-  user, 
-  isActive = false, 
-  className,
-  onSwipeAction 
-}: SwipeCardProps) {
+export default function SwipeCard({ user, isActive = false, onSwipeAction }: SwipeCardProps) {
+  const [dragPosition, setDragPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
-  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
-  const [showLikeIndicator, setShowLikeIndicator] = useState(false);
-  const [showPassIndicator, setShowPassIndicator] = useState(false);
-  const startPos = useRef({ x: 0, y: 0 });
+  const [showVideo, setShowVideo] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!isActive) return;
     setIsDragging(true);
-    startPos.current = { x: e.clientX, y: e.clientY };
-  };
+    const startX = e.clientX;
+    const startY = e.clientY;
 
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging || !isActive) return;
-    
-    const deltaX = e.clientX - startPos.current.x;
-    const deltaY = e.clientY - startPos.current.y;
-    
-    setDragOffset({ x: deltaX, y: deltaY });
-    
-    // Show indicators based on swipe direction
-    if (deltaX > 50) {
-      setShowLikeIndicator(true);
-      setShowPassIndicator(false);
-    } else if (deltaX < -50) {
-      setShowPassIndicator(true);
-      setShowLikeIndicator(false);
-    } else {
-      setShowLikeIndicator(false);
-      setShowPassIndicator(false);
-    }
-  };
+    const handleMouseMove = (e: MouseEvent) => {
+      const deltaX = e.clientX - startX;
+      const deltaY = e.clientY - startY;
+      setDragPosition({ x: deltaX, y: deltaY });
+    };
 
-  const handleMouseUp = () => {
-    if (!isDragging || !isActive) return;
-    
-    setIsDragging(false);
-    
-    const threshold = 100;
-    if (Math.abs(dragOffset.x) > threshold) {
-      if (dragOffset.x > 0) {
-        onSwipeAction?.("like");
-      } else {
-        onSwipeAction?.("pass");
+    const handleMouseUp = () => {
+      setIsDragging(false);
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+
+      const threshold = 100;
+      if (Math.abs(dragPosition.x) > threshold) {
+        if (dragPosition.x > 0) {
+          onSwipeAction?.('like');
+        } else {
+          onSwipeAction?.('pass');
+        }
+      } else if (dragPosition.y < -100) {
+        onSwipeAction?.('superlike');
       }
+      
+      setDragPosition({ x: 0, y: 0 });
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  };
+
+  const getSwipeIndicator = () => {
+    if (dragPosition.y < -50) {
+      return (
+        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white px-4 py-2 rounded-full font-bold z-10">
+          <Star className="inline mr-2" size={16} />
+          SUPER LIKE
+        </div>
+      );
+    } else if (dragPosition.x > 50) {
+      return (
+        <div className="absolute top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-full font-bold z-10">
+          <Heart className="inline mr-2" size={16} />
+          ชอบ
+        </div>
+      );
+    } else if (dragPosition.x < -50) {
+      return (
+        <div className="absolute top-4 left-4 bg-red-500 text-white px-4 py-2 rounded-full font-bold z-10">
+          <X className="inline mr-2" size={16} />
+          ผ่าน
+        </div>
+      );
     }
-    
-    // Reset
-    setDragOffset({ x: 0, y: 0 });
-    setShowLikeIndicator(false);
-    setShowPassIndicator(false);
+    return null;
   };
 
-  // Touch events for mobile
-  const handleTouchStart = (e: React.TouchEvent) => {
-    if (!isActive) return;
-    setIsDragging(true);
-    const touch = e.touches[0];
-    startPos.current = { x: touch.clientX, y: touch.clientY };
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isDragging || !isActive) return;
-    
-    const touch = e.touches[0];
-    const deltaX = touch.clientX - startPos.current.x;
-    const deltaY = touch.clientY - startPos.current.y;
-    
-    setDragOffset({ x: deltaX, y: deltaY });
-    
-    if (deltaX > 50) {
-      setShowLikeIndicator(true);
-      setShowPassIndicator(false);
-    } else if (deltaX < -50) {
-      setShowPassIndicator(true);
-      setShowLikeIndicator(false);
-    } else {
-      setShowLikeIndicator(false);
-      setShowPassIndicator(false);
-    }
-  };
-
-  const handleTouchEnd = () => {
-    handleMouseUp();
-  };
-
-  const cardStyle = isActive && isDragging ? {
-    transform: `translate(${dragOffset.x}px, ${dragOffset.y}px) rotate(${dragOffset.x * 0.1}deg)`,
-    transition: 'none',
-  } : {};
+  const rotation = isDragging ? dragPosition.x / 10 : 0;
+  const opacity = isDragging ? Math.max(0.7, 1 - Math.abs(dragPosition.x) / 300) : 1;
 
   return (
     <div
       ref={cardRef}
-      className={cn("swipe-card bg-white rounded-2xl card-shadow", className)}
-      style={cardStyle}
+      className={`absolute inset-4 bg-white rounded-2xl card-shadow overflow-hidden cursor-grab ${
+        isDragging ? 'cursor-grabbing' : ''
+      } ${isActive ? 'z-20' : 'z-10'}`}
+      style={{
+        transform: `translate(${dragPosition.x}px, ${dragPosition.y}px) rotate(${rotation}deg)`,
+        opacity,
+        scale: isActive ? 1 : 0.95,
+      }}
       onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseUp}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
       data-testid={`swipe-card-${user.id}`}
     >
-      <div className="aspect-[3/4] relative overflow-hidden rounded-t-2xl">
-        <img 
-          src={user.profileImageUrl || `https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400&h=600&fit=crop&crop=face`}
-          alt={user.displayName || "Profile"} 
-          className="w-full h-full object-cover"
-          draggable={false}
-        />
-        <div className="absolute inset-0 video-overlay"></div>
-        
+      {getSwipeIndicator()}
+      
+      <div className="relative h-full">
+        {/* Background Image */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center"
+          style={{
+            backgroundImage: `url(${user.profileImageUrl || 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400&h=600&fit=crop&crop=face'})`,
+          }}
+        >
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+        </div>
+
         {/* Video Play Button */}
         {user.videoUrl && (
-          <Button 
+          <Button
             variant="ghost"
             size="icon"
-            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full text-white hover:bg-white/30"
+            className="absolute top-4 right-4 w-12 h-12 bg-black/50 hover:bg-black/70 text-white rounded-full"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowVideo(!showVideo);
+            }}
             data-testid={`button-play-video-${user.id}`}
           >
-            <Play size={24} className="ml-1" />
+            <Play size={20} />
           </Button>
         )}
-        
-        {/* Profile Info */}
+
+        {/* User Info */}
         <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-          <div className="flex items-end justify-between">
-            <div>
-              <h3 className="text-2xl font-bold mb-1" data-testid={`text-user-name-${user.id}`}>
-                {user.displayName}, {user.age}
-              </h3>
-              <p className="text-white/90 mb-2">
-                {user.occupation} • {user.location}
-              </p>
-              {user.education && (
-                <div className="flex items-center space-x-4 text-sm mb-3">
-                  <span>🎓 {user.education}</span>
-                </div>
+          <div className="mb-4">
+            <h2 
+              className="text-3xl font-bold mb-1 thai-text"
+              data-testid={`text-user-name-${user.id}`}
+            >
+              {user.displayName || `${user.firstName} ${user.lastName}`}, {user.age}
+            </h2>
+            
+            <div className="flex items-center text-white/90 mb-3">
+              {user.occupation && (
+                <>
+                  <Briefcase size={16} className="mr-1" />
+                  <span>{user.occupation}</span>
+                </>
               )}
-              {user.interests && user.interests.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-3">
-                  {user.interests.slice(0, 3).map((interest, index) => (
-                    <span 
-                      key={index}
-                      className="px-2 py-1 bg-white/20 backdrop-blur-sm rounded-full text-xs"
-                      data-testid={`interest-${interest}-${user.id}`}
-                    >
-                      {interest}
-                    </span>
-                  ))}
-                </div>
+              {user.occupation && user.location && <span className="mx-2">•</span>}
+              {user.location && (
+                <>
+                  <MapPin size={16} className="mr-1" />
+                  <span>{user.location}</span>
+                </>
               )}
             </div>
-            <Button 
+
+            {user.education && (
+              <div className="flex items-center text-white/90 mb-3">
+                <GraduationCap size={16} className="mr-2" />
+                <span>🎓 {user.education}</span>
+              </div>
+            )}
+
+            {user.bio && (
+              <p className="text-white/90 text-sm mb-4 thai-text leading-relaxed">
+                {user.bio}
+              </p>
+            )}
+
+            {/* Interests */}
+            {user.interests && user.interests.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {user.interests.slice(0, 4).map((interest, index) => (
+                  <Badge 
+                    key={index}
+                    variant="secondary" 
+                    className="bg-white/20 text-white hover:bg-white/30 thai-text"
+                    data-testid={`interest-${interest}-${user.id}`}
+                  >
+                    {interest}
+                  </Badge>
+                ))}
+                {user.interests.length > 4 && (
+                  <Badge variant="secondary" className="bg-white/20 text-white">
+                    +{user.interests.length - 4}
+                  </Badge>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Video Overlay */}
+        {showVideo && user.videoUrl && (
+          <div className="absolute inset-0 bg-black/90 flex items-center justify-center z-30">
+            <video
+              src={user.videoUrl}
+              className="max-w-full max-h-full"
+              controls
+              autoPlay
+              onEnded={() => setShowVideo(false)}
+            />
+            <Button
               variant="ghost"
               size="icon"
-              className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full text-white hover:bg-white/30"
-              data-testid={`button-info-${user.id}`}
+              className="absolute top-4 right-4 text-white"
+              onClick={() => setShowVideo(false)}
             >
-              <Info size={16} />
+              <X size={20} />
             </Button>
           </div>
-        </div>
-        
-        {/* Swipe Indicators */}
-        <div 
-          className={`absolute top-8 left-8 transform -rotate-12 transition-opacity duration-200 ${
-            showPassIndicator ? 'opacity-100' : 'opacity-0'
-          }`}
-        >
-          <div className="px-4 py-2 border-4 border-red-500 text-red-500 font-bold text-xl rounded-lg bg-white/90 flex items-center">
-            <X size={20} className="mr-1" />
-            <span className="thai-text">ผ่าน</span>
-          </div>
-        </div>
-        
-        <div 
-          className={`absolute top-8 right-8 transform rotate-12 transition-opacity duration-200 ${
-            showLikeIndicator ? 'opacity-100' : 'opacity-0'
-          }`}
-        >
-          <div className="px-4 py-2 border-4 border-green-500 text-green-500 font-bold text-xl rounded-lg bg-white/90 flex items-center">
-            <Heart size={20} className="mr-1" />
-            <span className="thai-text">ชอบ</span>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );
